@@ -1,0 +1,17 @@
+
+@import "tailwindcss";
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  margin: 0;
+  background: #240814;
+  color: #fff5fa;
+  font-family: "DM Sans", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
