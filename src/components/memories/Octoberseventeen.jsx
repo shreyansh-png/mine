@@ -1,141 +1,267 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 const letters = [
   {
     number: "01",
-    title: "The first letter",
-    text: "Replace this with the exact words from your first original letter.",
+    title: "Meri Cuckoo...",
+    subtitle: "A little poem, written for you",
+    image: "/assets/letters/l1.png",
   },
   {
     number: "02",
-    title: "The second letter",
-    text: "Replace this with the exact words from your second original letter.",
+    title: "The Invisible String Theory",
+    subtitle: "Maybe the universe knew",
+    image: "/assets/letters/l2.png",
   },
   {
     number: "03",
-    title: "The third letter",
-    text: "Replace this with the exact words from your third original letter.",
+    title: "I Love You!!!",
+    subtitle: "A few things from my heart",
+    image: "/assets/letters/l3.png",
   },
 ];
 
 export default function OctoberSeventeen() {
-  const [opened, setOpened] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(null);
+
+  const activeLetter =
+    activeIndex === null ? null : letters[activeIndex];
+
+  function showPrevious() {
+    setActiveIndex(
+      (current) => (current - 1 + letters.length) % letters.length
+    );
+  }
+
+  function showNext() {
+    setActiveIndex(
+      (current) => (current + 1) % letters.length
+    );
+  }
+
+  useEffect(() => {
+    if (activeIndex === null) return;
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") setActiveIndex(null);
+      if (event.key === "ArrowLeft") showPrevious();
+      if (event.key === "ArrowRight") showNext();
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [activeIndex]);
 
   return (
     <section
       id="october-seventeen"
-      className="relative overflow-hidden bg-[#111119] px-6 py-28 text-[#F2EEF2] sm:py-36"
+      className="relative overflow-hidden bg-[#111119] px-5 py-24 text-[#F4EAF0] sm:py-32"
     >
-      <div className="mx-auto max-w-3xl">
-
-        {/* Chapter introduction */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+      <div className="mx-auto max-w-5xl">
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.9 }}
-          className="mb-20 text-center sm:mb-28"
+          viewport={{ once: true }}
+          className="text-center text-[10px] tracking-[0.35em] text-[#C99BB5]"
         >
-          <p className="text-[10px] tracking-[0.3em] text-white/40">
-            17 OCTOBER · LAST YEAR
-          </p>
+          OCTOBER 17 · JUST FOR YOU
+        </motion.p>
 
-          <h2 className="mt-7 font-serif text-5xl font-normal leading-tight tracking-tight sm:text-7xl">
-            A day that became
-            <span className="mt-1 block text-[#C99BB5]">
-              a part of us.
-            </span>
-          </h2>
+        <motion.h2
+          initial={{ opacity: 0, y: 14 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+          className="mt-5 text-center font-serif text-4xl sm:text-6xl"
+        >
+          Three Letters, One Heart.
+        </motion.h2>
 
-          <p
-            className="mx-auto mt-7 max-w-md text-2xl leading-relaxed text-white/65 sm:text-3xl"
-            style={{ fontFamily: "'Caveat', cursive" }}
-          >
-            Some feelings are easier to write than to say. ♡
-          </p>
+        <p className="mx-auto mt-5 max-w-md text-center text-sm leading-7 text-white/45">
+          Some feelings are too special to leave unsaid.
+          I saved a little piece of my heart for you in each one.
+        </p>
 
-          <p className="mx-auto mt-5 max-w-sm text-sm leading-7 text-white/40">
-            Three letters, written a year ago, carrying pieces of my heart.
-          </p>
-        </motion.div>
-
-        {/* Three original letters */}
-        <div className="border-t border-white/10">
-          {letters.map((letter, index) => {
-            const isOpen = opened === index;
-
-            return (
-              <motion.div
-                key={letter.number}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.25 }}
-                transition={{ duration: 0.7, delay: index * 0.1 }}
-                className="border-b border-white/10"
-              >
-                <button
-                  type="button"
-                  aria-expanded={isOpen}
-                  onClick={() =>
-                    setOpened(isOpen ? null : index)
-                  }
-                  className="group flex w-full items-center gap-5 py-7 text-left sm:py-9"
-                >
-                  <span className="font-serif text-2xl italic text-[#C99BB5]">
-                    {letter.number}
+        <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-5">
+          {letters.map((letter, index) => (
+            <motion.button
+              key={letter.number}
+              type="button"
+              onClick={() => setActiveIndex(index)}
+              initial={{ opacity: 0, y: 22 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ delay: index * 0.12, duration: 0.6 }}
+              whileHover={{ y: -6 }}
+              whileTap={{ scale: 0.98 }}
+              className="group text-left"
+            >
+              <div className="relative overflow-hidden rounded-2xl border border-[#C99BB5]/20 bg-[#1A151E] p-5 transition-colors duration-300 group-hover:border-[#C99BB5]/60 sm:p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] tracking-[0.25em] text-[#C99BB5]">
+                    LETTER {letter.number}
                   </span>
 
-                  <span className="flex-1">
-                    <span className="block text-xs tracking-[0.18em] text-white/45">
-                      LETTER {letter.number}
-                    </span>
-
-                    <span className="mt-2 block font-serif text-2xl text-white/90 transition-colors group-hover:text-[#E8BDD0] sm:text-3xl">
-                      {letter.title}
-                    </span>
+                  <span className="text-sm text-[#C99BB5]">
+                    ♡
                   </span>
+                </div>
 
-                  <motion.span
-                    animate={{ rotate: isOpen ? 45 : 0 }}
-                    className="text-xl text-[#C99BB5]"
+                {/* Envelope illustration */}
+                <div className="relative mx-auto mt-7 flex aspect-[1.45/1] w-full max-w-[280px] items-center justify-center">
+                  <svg
+                    viewBox="0 0 320 210"
+                    className="h-full w-full drop-shadow-[0_15px_25px_rgba(0,0,0,0.25)]"
+                    aria-hidden="true"
                   >
-                    +
-                  </motion.span>
-                </button>
+                    <rect
+                      x="15"
+                      y="28"
+                      width="290"
+                      height="166"
+                      rx="8"
+                      fill="#211923"
+                      stroke="#8C647B"
+                      strokeOpacity="0.65"
+                    />
 
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.45, ease: "easeInOut" }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pb-8 pl-10 sm:pl-14">
-                        <div className="border-l border-[#C99BB5]/35 pl-5 sm:pl-7">
-                          <p
-                            className="whitespace-pre-line text-xl leading-relaxed text-[#E8BDD0] sm:text-2xl"
-                            style={{ fontFamily: "'Caveat', cursive" }}
-                          >
-                            {letter.text}
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
+                    <path
+                      d="M17 34 L160 130 L303 34"
+                      fill="none"
+                      stroke="#C99BB5"
+                      strokeOpacity="0.7"
+                      strokeWidth="2"
+                    />
+
+                    <path
+                      d="M17 190 L115 105 M303 190 L205 105"
+                      fill="none"
+                      stroke="#8C647B"
+                      strokeOpacity="0.75"
+                      strokeWidth="1.5"
+                    />
+
+                    <circle
+                      cx="160"
+                      cy="130"
+                      r="23"
+                      fill="#C99BB5"
+                    />
+
+                    <path
+                      d="M160 142 C154 136 145 130 145 123 C145 113 157 111 160 120 C165 111 176 113 176 123 C176 130 166 137 160 142Z"
+                      fill="#542D45"
+                    />
+                  </svg>
+
+                  <span className="absolute bottom-[10%] right-[10%] text-[9px] tracking-widest text-white/40">
+                    FOR CUCKOO
+                  </span>
+                </div>
+
+                <div className="mt-5">
+                  <h3 className="font-serif text-xl leading-snug text-white/90">
+                    {letter.title}
+                  </h3>
+
+                  <p className="mt-2 text-xs leading-6 text-white/45">
+                    {letter.subtitle}
+                  </p>
+
+                  <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
+                    <span className="text-[10px] tracking-[0.2em] text-white/45">
+                      OPEN LETTER
+                    </span>
+
+                    <span className="text-[#C99BB5] transition-transform duration-300 group-hover:translate-x-1">
+                      ↗
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.button>
+          ))}
         </div>
 
-        <p className="mt-8 text-center text-[10px] tracking-[0.16em] text-white/30">
-          OPEN EACH LETTER WHENEVER YOU LIKE ♡
+        <p className="mt-10 text-center font-serif text-sm italic text-white/35">
+          Made with love, always.
         </p>
       </div>
+
+      {/* Open letter overlay */}
+      <AnimatePresence>
+        {activeLetter && (
+          <motion.div
+            key={activeLetter.number}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setActiveIndex(null)}
+            className="fixed inset-0 z-[100] overflow-y-auto bg-[#0C0A10]/95 px-4 py-8 backdrop-blur-md sm:px-8"
+            role="dialog"
+            aria-modal="true"
+            aria-label={activeLetter.title}
+          >
+            <div className="mx-auto flex min-h-full max-w-2xl flex-col items-center justify-center">
+              <div className="mb-5 flex w-full items-center justify-between">
+                <p className="text-[10px] tracking-[0.25em] text-[#C99BB5]">
+                  LETTER {activeLetter.number} OF 03
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveIndex(null)}
+                  className="rounded-full border border-white/15 px-4 py-2 text-sm text-white/75 transition hover:border-[#C99BB5] hover:text-white"
+                  aria-label="Close letter"
+                >
+                  CLOSE ✕
+                </button>
+              </div>
+
+              <motion.div
+                initial={{ y: 24, scale: 0.97 }}
+                animate={{ y: 0, scale: 1 }}
+                exit={{ y: 12, scale: 0.98 }}
+                transition={{ duration: 0.35 }}
+                onClick={(event) => event.stopPropagation()}
+                className="w-full overflow-hidden rounded-sm border border-[#C99BB5]/25 bg-[#F5F0E7] shadow-[0_25px_100px_rgba(0,0,0,0.45)]"
+              >
+                <img
+                  src={activeLetter.image}
+                  alt={activeLetter.title}
+                  className="block h-auto w-full"
+                />
+              </motion.div>
+
+              <div className="mt-5 flex w-full items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={showPrevious}
+                  className="rounded-full border border-[#C99BB5]/30 px-4 py-3 text-xs text-[#E8BDD0] transition hover:bg-white/5"
+                >
+                  ← Previous
+                </button>
+
+                <span className="text-center text-[9px] tracking-[0.2em] text-white/35">
+                  A LITTLE PIECE OF MY HEART
+                </span>
+
+                <button
+                  type="button"
+                  onClick={showNext}
+                  className="rounded-full border border-[#C99BB5]/30 px-4 py-3 text-xs text-[#E8BDD0] transition hover:bg-white/5"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

@@ -13,10 +13,9 @@ const fireflies = [
   { x: "64%", y: "31%", delay: 1.5 },
 ];
 
-export default function Intro() {
+export default function Intro({ onStartMusic }) {
   const [bloom, setBloom] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const audioRef = useRef(null);
   const timeoutRef = useRef(null);
 
   useEffect(() => {
@@ -26,12 +25,10 @@ export default function Intro() {
   function beginStory() {
     if (leaving) return;
 
+    onStartMusic?.();
+
     setBloom(true);
     setLeaving(true);
-
-    audioRef.current?.play().catch(() => {
-      // Intro still works if audio is unavailable.
-    });
 
     timeoutRef.current = window.setTimeout(() => {
       document.getElementById("particle-portrait")?.scrollIntoView({
@@ -49,13 +46,6 @@ export default function Intro() {
         leaving ? "opacity-70" : "opacity-100"
       }`}
     >
-      <audio
-        ref={audioRef}
-        src="/assets/audio/background-music.mp3"
-        loop
-        preload="none"
-      />
-
       {/* Original dark theme: only a little ambient colour */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,#261725_0%,#111119_65%)]" />
 
@@ -208,6 +198,23 @@ export default function Intro() {
         >
           365 DAYS OF US
         </motion.p>
+
+
+<motion.button
+  type="button"
+  onClick={beginStory}
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 2.2, duration: 1 }}
+  whileHover={{ color: "#FFFFFF" }}
+  whileTap={{ scale: 0.97 }}
+  className="group mt-12 inline-flex items-center gap-3 border-b border-[#C99BB5]/40 pb-2 text-[10px] tracking-[0.22em] text-white/60 transition-colors hover:border-[#C99BB5] sm:mt-14"
+>
+  OPEN OUR STORY
+  <span className="text-[#C99BB5] transition-transform duration-300 group-hover:translate-x-1">
+    ↗
+  </span>
+</motion.button>
 
       
 
