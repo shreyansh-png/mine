@@ -12,7 +12,7 @@ const memories = [
     alt: "Our Garba Night",
     date: "THE BEGINNING",
     title: "Garba Night",
-    caption: "Where our memories began.",
+    caption: "Where our memories began",
     position: "left-[0%] top-[0%] md:left-[2%] md:top-[0%]",
   },
   {
@@ -21,7 +21,7 @@ const memories = [
     alt: "The first flower",
     date: "A LITTLE SURPRISE",
     title: "First Flower",
-    caption: "A little flower, a memory forever.",
+    caption: "A little flower, a memory forever",
     position: "left-[54%] top-[13%] md:left-[68%] md:top-[12%]",
   },
   {
@@ -48,7 +48,7 @@ const memories = [
     alt: "Our Chowk memory",
     date: "AN UNPLANNED MOMENT",
     title: "Chowk",
-    caption: "Just another random moment that became special.",
+    caption: "Just another random moment that became special",
     position: "left-[0%] top-[63%] md:left-[2%] md:top-[62%]",
   },
   {

@@ -50,7 +50,7 @@ export default function FirstSelfie() {
           </h2>
 
           <p className="mt-5 text-xs text-white/40">
-            And now, look at us.
+            And now, look at us
           </p>
         </div>
       </motion.div>

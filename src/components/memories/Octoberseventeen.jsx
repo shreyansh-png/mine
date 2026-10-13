@@ -83,7 +83,7 @@ export default function OctoberSeventeen() {
 
         <p className="mx-auto mt-5 max-w-md text-center text-sm leading-7 text-white/45">
           Some feelings are too special to leave unsaid.
-          I saved a little piece of my heart for you in each one.
+          I saved a little piece of my heart for you in each one
         </p>
 
         <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-5">
@@ -188,7 +188,7 @@ export default function OctoberSeventeen() {
         </div>
 
         <p className="mt-10 text-center font-serif text-sm italic text-white/35">
-          Made with love, always.
+          Made with love, always
         </p>
       </div>
 
