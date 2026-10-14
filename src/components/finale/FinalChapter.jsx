@@ -33,10 +33,10 @@ void main(){vec2 p=aP;float k=aK;
   float sw=smoothstep(70.,0.,abs(p.y-uSwY))*k;float sh=.05*sin(uT*1.6-p.y*.03)*k;
   vC=mix(dust,aC,k)+vec3(.45,.35,.42)*bo*.8+vec3(.55,.5,.55)*sw+vec3(sh);
   vA=clamp(mix((.3+.5*aS)*uDust,1.,k)*uFade*(1.+bo*.5),0.,1.);vK=k;
-  gl_PointSize=mix(uSz*(.6+aS*1.1),uStep*1.28,k)*(1.+bo*.8)*uD;}
+  gl_PointSize=mix(uSz*(.6+aS*1.1),uStep*1.34,k)*(1.+bo*.8)*uD;}
  gl_Position=vec4(p.x/uR.x*2.-1.,1.-p.y/uR.y*2.,0.,1.);}`
 const FS = `precision mediump float;varying vec3 vC;varying float vA,vK;
-void main(){vec2 c=gl_PointCoord*2.-1.;float d=mix(length(c),max(abs(c.x),abs(c.y)),vK);float a=vA*(1.-smoothstep(.5,1.,d));gl_FragColor=vec4(clamp(vC,0.,1.)*a,a);}`
+void main(){vec2 c=gl_PointCoord*2.-1.;float d=mix(length(c),max(abs(c.x),abs(c.y)),vK);float a=vA*(1.-smoothstep(mix(.5,.6,vK),1.,d));gl_FragColor=vec4(clamp(vC,0.,1.)*a,a);}`
 
 // shared look for the small pill buttons (Tailwind's preflight strips default button styling)
 const BTN = 'cursor-pointer rounded-full border border-white/20 bg-transparent px-3.5 py-1.5 text-sm text-[#a398aa] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D6A3BC]'
@@ -208,27 +208,29 @@ export default function FinalChapter({
       ;[...dots.children].forEach(d => (d.dataset.on = '0')); if (!FB) build()
     }
     function targets(n) {   // draw the words on a hidden canvas, turn their pixels into target points
-      const w = Math.round(W), h = Math.round(H), a = document.createElement('canvas'); a.width = w; a.height = h
+      const w = Math.round(W), h = Math.round(H)
+      if (w <= 0 || h <= 0) return { x: [], y: [], c: [], n: 0, ts: 1.3 }
+      const a = document.createElement('canvas'); a.width = w; a.height = h
       const c = a.getContext('2d', { willReadFrequently: true }), S = SL[n], L = [], mw = Math.min(W * 0.84, 620)
       c.textAlign = 'center'; c.textBaseline = 'middle'
       if (S.p) {
         const fs = cl(W * 0.052, 19, 30); c.font = `italic ${fs}px ${font}`; let ln = ''
-        for (const wd of S.p.split(' ')) { const t = ln ? ln + ' ' + wd : wd; if (ln && c.measureText(t).width > mw) { L.push([ln, '#efe6ec', fs, 'italic']); ln = wd } else ln = t }
-        L.push([ln, '#efe6ec', fs, 'italic'])
+        for (const wd of S.p.split(' ')) { const t = ln ? ln + ' ' + wd : wd; if (ln && c.measureText(t).width > mw) { L.push([ln, '#f8eff6', fs, 'italic']); ln = wd } else ln = t }
+        L.push([ln, '#f8eff6', fs, 'italic'])
       } else {
         const hd = !!S.h, [a1, a2] = S.h || S.s, f1 = cl(W * (hd ? 0.085 : 0.06), hd ? 30 : 22, hd ? 56 : 34)
-        L.push([a1, hd ? '#f3e9ee' : '#D6A3BC', f1, hd ? '' : 'italic'], [a2, hd ? '#D6A3BC' : '#f3e9ee', f1 * (hd ? 1.2 : 1.5), 'italic'])
+        L.push([a1, hd ? '#faf1f6' : '#D6A3BC', f1, hd ? '' : 'italic'], [a2, hd ? '#D6A3BC' : '#faf1f6', f1 * (hd ? 1.2 : 1.5), 'italic'])
       }
       const lh = L.map(l => l[2] * 1.55); let y = H * 0.47 - lh.reduce((p, q) => p + q, 0) / 2
       L.forEach((l, i) => {
-        y += lh[i] / 2; c.font = `${l[3]} ${l[2]}px ${font}`; c.fillStyle = c.strokeStyle = l[1]; c.lineWidth = 0.9
+        y += lh[i] / 2; c.font = `${l[3]} ${l[2]}px ${font}`; c.fillStyle = c.strokeStyle = l[1]; c.lineWidth = 1.15
         c.strokeText(l[0], W / 2, y); c.fillText(l[0], W / 2, y); y += lh[i] / 2
       })
-      const d = c.getImageData(0, 0, w, h).data; let ts = 1.4, X, Y, K
+      const d = c.getImageData(0, 0, w, h).data; let ts = 1.3, X, Y, K
       for (let tries = 0; tries < 4; tries++) {
         X = []; Y = []; K = []
         for (let yy = ts / 2; yy < h; yy += ts) for (let xx = ts / 2; xx < w; xx += ts) {
-          const i = ((yy | 0) * w + (xx | 0)) * 4; if (d[i + 3] > 110) { X.push(xx); Y.push(yy); K.push(d[i] / 255, d[i + 1] / 255, d[i + 2] / 255) }
+          const i = ((yy | 0) * w + (xx | 0)) * 4; if (d[i + 3] > 85) { X.push(xx); Y.push(yy); K.push(d[i] / 255, d[i + 1] / 255, d[i + 2] / 255) }
         }
         if (X.length < N * 0.9) break; ts *= 1.25
       }
