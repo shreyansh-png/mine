@@ -30,7 +30,7 @@ const memories = [
     alt: "Our video call",
     date: "THAT SMILE",
     title: "That Smile",
-    caption: "Vo smile bhool nahi sakta, vo khushi tumhari. ♡",
+    caption: "Vo smile bhool nahi sakta, vo khushi tumhari ♡",
     position: "left-[0%] top-[30%] md:left-[4%] md:top-[29%]",
   },
   {
@@ -38,8 +38,8 @@ const memories = [
     image: "/assets/cutout/thf-date.png",
     alt: "Our THF date",
     date: "10 DECEMBER",
-    title: "THF",
-    caption: "A day I'll always keep close. ♡",
+    title: "THF🍵",
+    caption: "A day I'll always keep close ♡",
     position: "left-[54%] top-[46%] md:left-[65%] md:top-[44%]",
   },
   {
@@ -57,7 +57,7 @@ const memories = [
     alt: "My birthday memory",
     date: "MY BIRTHDAY",
     title: "You Made My Day",
-    caption: "Thank you for making my day so special. ♡",
+    caption: "Thank you for making my day so special ♡",
     position: "left-[52%] top-[80%] md:left-[61%] md:top-[79%]",
   },
 ];

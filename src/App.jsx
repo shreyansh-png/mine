@@ -6,7 +6,10 @@ import ParticlePortrait from "./components/intro/ParticlePortrait";
 import FirstSelfie from "./components/memories/FirstSelfie";
 import OctoberSeventeen from "./components/memories/Octoberseventeen";
 import JourneyTimeline from "./components/memories/JourneyTimeline";
-import FinalChapter from "./components/finale/FinalChapter";
+import FinalChapter from './components/finale/FinalChapter'
+
+
+
 const MUSIC_VOLUME = 0.12;
 
 export default function App() {
@@ -74,7 +77,7 @@ export default function App() {
         <FirstSelfie />
         <OctoberSeventeen />
         <JourneyTimeline />
-        <FinalChapter/>
+        <FinalChapter src="/assets/couple-sticker.webp" />
       </main>
 
       {/* Persistent music ON/OFF button */}
