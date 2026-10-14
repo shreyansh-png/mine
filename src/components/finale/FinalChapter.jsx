@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react'
  * Plain WebGL + React hooks + Tailwind utilities only (needs Tailwind 3.2+ for group-data-[...]). Nothing re-renders per frame.
  *
  * Props
- *  src     URL of the cut-out sticker (transparent .webp/.png), e.g. '/couple-sticker.webp' from /public
+ *  src     URL of the cut-out sticker (transparent .webp/.png), e.g. '/assets/couple-sticker.webp'
  *  alt     alt text for the sticker
  *  title   small title at the top
  *  font    CSS font-family used to draw the words (swap in your site's serif)
@@ -33,10 +33,10 @@ void main(){vec2 p=aP;float k=aK;
   float sw=smoothstep(70.,0.,abs(p.y-uSwY))*k;float sh=.05*sin(uT*1.6-p.y*.03)*k;
   vC=mix(dust,aC,k)+vec3(.45,.35,.42)*bo*.8+vec3(.55,.5,.55)*sw+vec3(sh);
   vA=clamp(mix((.3+.5*aS)*uDust,1.,k)*uFade*(1.+bo*.5),0.,1.);vK=k;
-  gl_PointSize=mix(uSz*(.6+aS*1.1),uStep*1.18,k)*(1.+bo*.8)*uD;}
+  gl_PointSize=mix(uSz*(.6+aS*1.1),uStep*1.34,k)*(1.+bo*.8)*uD;}
  gl_Position=vec4(p.x/uR.x*2.-1.,1.-p.y/uR.y*2.,0.,1.);}`
 const FS = `precision mediump float;varying vec3 vC;varying float vA,vK;
-void main(){vec2 c=gl_PointCoord*2.-1.;float d=mix(length(c),max(abs(c.x),abs(c.y)),vK);float a=vA*(1.-smoothstep(mix(.5,.62,vK),1.,d));gl_FragColor=vec4(clamp(vC,0.,1.)*a,a);}`
+void main(){vec2 c=gl_PointCoord*2.-1.;float d=mix(length(c),max(abs(c.x),abs(c.y)),vK);float a=vA*(1.-smoothstep(mix(.5,.6,vK),1.,d));gl_FragColor=vec4(clamp(vC,0.,1.)*a,a);}`
 
 // shared look for the small pill buttons (Tailwind's preflight strips default button styling)
 const BTN = 'cursor-pointer rounded-full border border-white/20 bg-transparent px-3.5 py-1.5 text-sm text-[#a398aa] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D6A3BC]'
@@ -45,16 +45,17 @@ export default function FinalChapter({
   src = '/assets/couple-sticker.webp',
   alt = 'Cuckoo and Shreyansh',
   title = 'Until Our Next Chapter',
-  font = '"Cormorant Garamond",Georgia,serif',
+  font = 'Georgia,"Times New Roman",serif',
+  weight = 500,   // 500 = regular for most fonts; the crisp text on top uses the same weight
   slides = DEFAULT_SLIDES,
 }) {
   const rootRef = useRef(null), canvasRef = useRef(null), imgRef = useRef(null), gpRef = useRef(null)
   const hintRef = useRef(null), fillRef = useRef(null), dotsRef = useRef(null), srRef = useRef(null)
-  const nxRef = useRef(null), foldRef = useRef(null), skipRef = useRef(null)
+  const txRef = useRef(null), nxRef = useRef(null), foldRef = useRef(null), skipRef = useRef(null)
 
   useEffect(() => {
     const root = rootRef.current, C = canvasRef.current, im = imgRef.current, gp = gpRef.current
-    const hint = hintRef.current, bi = fillRef.current, dots = dotsRef.current, sr = srRef.current
+    const TX = txRef.current, tctx = TX.getContext('2d'), hint = hintRef.current, bi = fillRef.current, dots = dotsRef.current, sr = srRef.current
     const ac = new AbortController(), { signal } = ac
     const RM = matchMedia('(prefers-reduced-motion: reduce)').matches
     const R = Math.random, cl = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
@@ -62,8 +63,8 @@ export default function FinalChapter({
     const gl = C.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false })
 
     let ASP = 1, U = {}, LOC = {}, bufM, bufS, prog
-    let W, H, dpr, gw, gh, gx, gy, N = 0, step = 2, b, hx, hy, vx, vy, sd, tk, dl
-    let slide = -1, t0 = 0, dust = 1, tReady = 0, FB = false, phase = 0   // phase: 0 rub, 1 finishing, 2 sweep, 3 sticker done, 4 words
+    let W, H, dpr, gw, gh, gx, gy, N = 0, Ns = 0, step = 2, b, hx, hy, vx, vy, sd, tk, dl
+    let txShow = false, slide = -1, t0 = 0, dust = 1, tReady = 0, FB = false, phase = 0   // phase: 0 rub, 1 finishing, 2 sweep, 3 sticker done, 4 words
     let tm = 0, ft = 0, sw = 0, swY = -999, fade = 1, touched = RM, formed = 0, lastBar = 0
     let vis = false, raf = 0, last = 0, ready = false, ro = null
     const M = 150, sb = new Float32Array(M * 7), sv = new Float32Array(M * 2), sl = new Float32Array(M * 2); let sp = 0
@@ -89,7 +90,7 @@ export default function FinalChapter({
     // ---------- layout + sampling the sticker into specks
     function lay() {
       W = root.clientWidth; H = root.clientHeight; dpr = Math.min(devicePixelRatio || 1, 2)
-      C.width = Math.round(W * dpr); C.height = Math.round(H * dpr)
+      C.width = Math.round(W * dpr); C.height = Math.round(H * dpr); TX.width = C.width; TX.height = C.height
       gh = Math.min(H * 0.58, (W * 0.8) / ASP); gw = gh * ASP; gx = (W - gw) / 2; gy = Math.max(48, H * 0.1)
       Object.assign(gp.style, { left: gx + 'px', top: gy + 'px', width: gw + 'px', height: gh + 'px' })
       if (gl) gl.viewport(0, 0, C.width, C.height)
@@ -104,14 +105,20 @@ export default function FinalChapter({
       for (let y = step / 2; y < th; y += step) for (let x = step / 2; x < tw; x += step) {
         const i = ((y | 0) * tw + (x | 0)) * 4; if (d[i + 3] > 150) L.push(x, y, d[i], d[i + 1], d[i + 2])
       }
-      N = L.length / 5; b = new Float32Array(N * 7)
+      Ns = L.length / 5; N = Ns + (W < 600 ? 5000 : 8000); b = new Float32Array(N * 7)
       hx = new Float32Array(N); hy = new Float32Array(N); vx = new Float32Array(N); vy = new Float32Array(N); sd = new Float32Array(N)
       tk = new Float32Array(N).fill(1); dl = new Float32Array(N); dust = 1; slide = -1
-      for (let i = 0; i < N; i++) {
+      for (let i = 0; i < Ns; i++) {
         const j = i * 5, o = i * 7, s = R(), jt = (0.94 + R() * 0.12) / 255
         hx[i] = gx + L[j]; hy[i] = gy + L[j + 1]; sd[i] = s
         b[o] = hx[i] + (R() - 0.5) * gw * 0.6; b[o + 1] = hy[i] + (R() - 0.5) * gh * 0.3; b[o + 2] = 0
         b[o + 3] = L[j + 2] * jt; b[o + 4] = L[j + 3] * jt; b[o + 5] = L[j + 4] * jt; b[o + 6] = s
+      }
+      for (let i = Ns; i < N; i++) {   // spare dust: only drawn once the words appear (sticker phase looks exactly as before)
+        const o = i * 7, s = R(), q = ((R() * Ns) | 0) * 7
+        hx[i] = R() * W; hy[i] = R() * H; sd[i] = s; tk[i] = 0
+        b[o] = gx + R() * gw; b[o + 1] = gy + R() * gh; b[o + 2] = 0
+        b[o + 3] = b[q + 3]; b[o + 4] = b[q + 4]; b[o + 5] = b[q + 5]; b[o + 6] = s
       }
       gl.bindBuffer(gl.ARRAY_BUFFER, bufM); gl.bufferData(gl.ARRAY_BUFFER, b, gl.DYNAMIC_DRAW)
       gl.bindBuffer(gl.ARRAY_BUFFER, bufS); gl.bufferData(gl.ARRAY_BUFFER, sb, gl.DYNAMIC_DRAW)
@@ -127,7 +134,8 @@ export default function FinalChapter({
       const RR = Math.max(40, gw * 0.18), fin = phase >= 1
       if (phase === 1) ft += dt
       formed = 0
-      for (let i = 0; i < N; i++) {
+      const NA = phase === 4 ? N : Ns
+      for (let i = 0; i < NA; i++) {
         const o = i * 7; let x = b[o], y = b[o + 1], k = b[o + 2], ax = vx[i], ay = vy[i]
         if (phase === 4) {   // words: each speck flies to its place in the text, or drifts off as dust
           const w = tk[i]
@@ -153,10 +161,10 @@ export default function FinalChapter({
         }
         b[o] = x; b[o + 1] = y; b[o + 2] = k; vx[i] = ax; vy[i] = ay
       }
-      const p = formed / N
+      const p = formed / Ns
       if (Math.abs(p - lastBar) > 0.01) { lastBar = p; bi.style.width = cl(p / 0.8) * 100 + '%' }
       if (phase === 0 && p >= 0.8) startFin()
-      if (phase === 1 && (formed >= N * 0.985 || ft > 3.4)) { phase = 2; sw = 0 }
+      if (phase === 1 && (formed >= Ns * 0.985 || ft > 3.4)) { phase = 2; sw = 0 }
       if (phase === 2) {
         sw += dt; swY = gy - 60 + (gh + 120) * cl(sw / 1.1)
         if (sw > 0.7) { im.style.opacity = 1; fade = Math.max(0, fade - dt / 0.9) }
@@ -181,7 +189,8 @@ export default function FinalChapter({
       gl.uniform1f(U.uFade, fade); gl.uniform1f(U.uDust, dust); gl.uniform1f(U.uSwY, swY)
       gl.uniform3f(U.uPt, ptr.on ? ptr.x : ghost.x, ptr.on ? ptr.y : ghost.y, on && phase === 0 ? Math.max(40, gw * 0.18) * 0.9 : 0)
       gl.uniform1f(U.uSp, 0); gl.uniform1f(U.uSz, 2.2); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-      bind(bufM); gl.bufferSubData(gl.ARRAY_BUFFER, 0, b); gl.drawArrays(gl.POINTS, 0, N)
+      const nd = phase === 4 ? N : Ns
+      bind(bufM); gl.bufferSubData(gl.ARRAY_BUFFER, 0, b.subarray(0, nd * 7)); gl.drawArrays(gl.POINTS, 0, nd)
       gl.uniform1f(U.uSp, 1); gl.uniform1f(U.uSz, 7); gl.blendFunc(gl.ONE, gl.ONE)
       bind(bufS); gl.bufferSubData(gl.ARRAY_BUFFER, 0, sb); gl.drawArrays(gl.POINTS, 0, M)
     }
@@ -191,6 +200,8 @@ export default function FinalChapter({
       dust += ((phase === 4 ? 0.28 : 1) - dust) * Math.min(1, dt * 2)
       ghost.on = !touched && phase === 0 && tm > 1.4 && tm < 4.8   // a ghost finger shows the idea first
       if (ghost.on) { const u = (tm - 1.4) / 3.4; ghost.x = gx + gw * (0.5 + 0.3 * Math.sin(u * 10)); ghost.y = gy + gh * (0.1 + 0.26 * u); ptr.spd = 14 }
+      // once the dust has settled into the words, the crisp copy fades in on top so they read cleanly
+      if (phase === 4 && !txShow && tm > t0 + 1.7) { txShow = true; TX.style.opacity = 1 }
       sim(dt); draw(); raf = requestAnimationFrame(frame)
     }
     const wake = () => { if (vis && !raf && ready && gl) { last = performance.now(); raf = requestAnimationFrame(frame) } }
@@ -202,6 +213,7 @@ export default function FinalChapter({
       if (FB) { hint.style.opacity = 1; hint.textContent = 'tap to continue' }
     }
     function again() {
+      TX.style.opacity = 0; txShow = false; tctx.clearRect(0, 0, TX.width, TX.height)
       root.dataset.s = 'rub'; root.style.touchAction = 'none'
       im.style.opacity = 0; phase = 0; fade = 1; swY = -999; touched = true; lastBar = 0; bi.style.width = '0'
       hint.textContent = 'rub the dust to bring us back'; hint.style.opacity = 0.85
@@ -209,60 +221,46 @@ export default function FinalChapter({
     }
     function targets(n) {   // draw the words on a hidden canvas, turn their pixels into target points
       const w = Math.round(W), h = Math.round(H)
-      if (w <= 0 || h <= 0) return { x: [], y: [], c: [], n: 0, ts: 1.35 }
+      if (w <= 0 || h <= 0) return { x: [], y: [], c: [], n: 0, ts: 1.3, lines: [] }
       const a = document.createElement('canvas'); a.width = w; a.height = h
-      const c = a.getContext('2d', { willReadFrequently: true }), S = SL[n], L = []
-      const mw = Math.min(W * (W < 500 ? 0.88 : 0.84), 620)
+      const c = a.getContext('2d', { willReadFrequently: true }), S = SL[n], L = [], mw = Math.min(W * 0.8, 640)
       c.textAlign = 'center'; c.textBaseline = 'middle'
-      if ('letterSpacing' in c) c.letterSpacing = W < 500 ? '0.04em' : '0.02em'
       if (S.p) {
-        const fs = cl(W * (W < 500 ? 0.064 : 0.052), W < 500 ? 23 : 20, 30)
-        c.font = `italic 500 ${fs}px ${font}`; let ln = ''
-        for (const wd of S.p.split(' ')) {
-          const t = ln ? ln + ' ' + wd : wd
-          if (ln && c.measureText(t).width > mw) { L.push([ln, '#f9eff7', fs, 'italic 500']); ln = wd }
-          else ln = t
-        }
-        L.push([ln, '#f9eff7', fs, 'italic 500'])
+        const fs = cl(W * 0.062, 21, 32); c.font = `italic ${weight} ${fs}px ${font}`; let ln = ''
+        for (const wd of S.p.split(' ')) { const t = ln ? ln + ' ' + wd : wd; if (ln && c.measureText(t).width > mw) { L.push([ln, '#f8eff6', fs, 'italic']); ln = wd } else ln = t }
+        L.push([ln, '#f8eff6', fs, 'italic'])
       } else {
-        const hd = !!S.h, [a1, a2] = S.h || S.s
-        const f1 = cl(W * (hd ? (W < 500 ? 0.088 : 0.085) : (W < 500 ? 0.068 : 0.06)), hd ? 30 : 23, hd ? 52 : 34)
-        L.push(
-          [a1, hd ? '#faf2f7' : '#D6A3BC', f1, hd ? '600' : 'italic 500'],
-          [a2, hd ? '#D6A3BC' : '#faf2f7', f1 * (hd ? 1.15 : 1.35), 'italic 600']
-        )
+        const hd = !!S.h, [a1, a2] = S.h || S.s, f1 = cl(W * (hd ? 0.095 : 0.07), hd ? 34 : 24, hd ? 60 : 36)
+        L.push([a1, hd ? '#faf1f6' : '#D6A3BC', f1, hd ? '' : 'italic'], [a2, hd ? '#D6A3BC' : '#faf1f6', f1 * (hd ? 1.2 : 1.5), 'italic'])
       }
-      const lh = L.map(l => l[2] * (W < 500 ? 1.62 : 1.55))
-      let y = H * (W < 500 ? 0.45 : 0.47) - lh.reduce((p, q) => p + q, 0) / 2
+      const lh = L.map(l => l[2] * (S.p ? 1.95 : 1.65)); let y = H * 0.47 - lh.reduce((p, q) => p + q, 0) / 2
+      const lines = []
       L.forEach((l, i) => {
-        y += lh[i] / 2
-        c.font = `${l[3]} ${l[2]}px ${font}`
-        c.fillStyle = l[1]
-        c.fillText(l[0], W / 2, y)
-        y += lh[i] / 2
+        y += lh[i] / 2; c.font = `${l[3]} ${weight} ${l[2]}px ${font}`; c.fillStyle = l[1]
+        c.fillText(l[0], W / 2, y); lines.push([l[0], y, l[3], l[2], l[1]]); y += lh[i] / 2
       })
-      const d = c.getImageData(0, 0, w, h).data
-      let ts = Math.max(1.35, Math.min(1.6, W < 500 ? 1.45 : 1.35)), X, Y, K
+      const d = c.getImageData(0, 0, w, h).data; let ts = 1.3, X, Y, K
       for (let tries = 0; tries < 4; tries++) {
         X = []; Y = []; K = []
         for (let yy = ts / 2; yy < h; yy += ts) for (let xx = ts / 2; xx < w; xx += ts) {
-          const i = ((yy | 0) * w + (xx | 0)) * 4
-          if (d[i + 3] > 110) {
-            X.push(xx); Y.push(yy); K.push(d[i] / 255, d[i + 1] / 255, d[i + 2] / 255)
-          }
+          const i = ((yy | 0) * w + (xx | 0)) * 4; if (d[i + 3] > 85) { X.push(xx); Y.push(yy); K.push(d[i] / 255, d[i + 1] / 255, d[i + 2] / 255) }
         }
-        if (X.length < N * 0.9) break
-        ts *= 1.2
+        if (X.length < Ns * 0.9) break; ts *= 1.25
       }
-      return { x: X, y: Y, c: K, n: X.length, ts }
+      return { x: X, y: Y, c: K, n: X.length, ts, lines }
+    }
+    function drawCrisp(lines) {   // same words, drawn as sharp text on a 2D canvas
+      tctx.setTransform(dpr, 0, 0, dpr, 0, 0); tctx.clearRect(0, 0, W, H); tctx.textAlign = 'center'; tctx.textBaseline = 'middle'
+      tctx.shadowColor = 'rgba(214,163,188,.35)'; tctx.shadowBlur = 10
+      lines.forEach(([txt, y, st, fs, color]) => { tctx.font = `${st} ${weight} ${fs}px ${font}`; tctx.fillStyle = color; tctx.fillText(txt, W / 2, y) })
     }
     function assign(tg) {   // sort both sides by x so the dust flows in parallel streams instead of crossing wildly
-      const T = Math.min(tg.n, N); step = tg.ts
-      const idx = Array.from({ length: N }, (_, i) => i).sort((p, q) => b[p * 7] - b[q * 7])
+      const T = Math.min(tg.n, Ns); step = tg.ts
+      const idx = Array.from({ length: Ns }, (_, i) => i).sort((p, q) => b[p * 7] - b[q * 7])
       const ord = Array.from({ length: tg.n }, (_, j) => j).sort((p, q) => tg.x[p] - tg.x[q])
       tk.fill(0)
       for (let j = 0; j < T; j++) {
-        const i = idx[Math.floor((j * N) / T)], t = ord[Math.floor((j * tg.n) / T)], o = i * 7
+        const i = idx[Math.floor((j * Ns) / T)], t = ord[Math.floor((j * tg.n) / T)], o = i * 7
         hx[i] = tg.x[t]; hy[i] = tg.y[t]; b[o + 3] = tg.c[t * 3]; b[o + 4] = tg.c[t * 3 + 1]; b[o + 5] = tg.c[t * 3 + 2]
         tk[i] = 1; b[o + 2] = Math.min(b[o + 2], 0.35)
       }
@@ -273,7 +271,8 @@ export default function FinalChapter({
       if (FB) { phase = 4; slide = n; hint.textContent = slText(n); return }
       const first = phase === 3; phase = 4; slide = n; t0 = tm
       if (first) { fade = 1; im.style.opacity = 0 }   // the sticker's own dust lifts off and becomes the words
-      assign(targets(n))
+      TX.style.opacity = 0; txShow = false
+      const tg = targets(n); assign(tg); drawCrisp(tg.lines)
       root.dataset.s = n === SL.length - 1 ? 'last' : 'msg'   // drives every Tailwind group-data-[s=...] style below
       ;[...dots.children].forEach((d, i) => (d.dataset.on = i === n ? '1' : '0'))
       sr.textContent = slText(n)
@@ -300,7 +299,7 @@ export default function FinalChapter({
     skipRef.current.addEventListener('click', () => { touched = true; startFin() }, { signal })
 
     // ---------- start
-    const io = new IntersectionObserver(([en]) => { vis = en.isIntersecting; if (vis) wake() }, { threshold: 0.1 })
+    const io = new IntersectionObserver(([en]) => { vis = en.isIntersecting; if (vis) wake() }, { threshold: 0.35 })
     io.observe(root)
     function init() {
       if (!im || !im.naturalWidth || !im.naturalHeight) return
@@ -321,11 +320,11 @@ export default function FinalChapter({
     }
 
     return () => {
-      ac.abort(); io.disconnect(); ro && ro.disconnect(); cancelAnimationFrame(raf)
+      ac.abort(); io.disconnect(); ro && ro.disconnect(); cancelAnimationFrame(raf); im.onload = null
       if (gl && prog) { gl.deleteBuffer(bufM); gl.deleteBuffer(bufS); gl.deleteProgram(prog) }
       root.dataset.s = 'rub'; root.style.touchAction = ''; im.style.opacity = 0
     }
-  }, [src, slides, font])
+  }, [src, slides, font, weight])
 
   return (
     // data-s = rub | msg | last. The engine flips it and the group-data-[s=...] variants below react to it.
@@ -335,35 +334,36 @@ export default function FinalChapter({
       aria-label={title}
       className="group relative h-[100svh] min-h-[560px] touch-none select-none overflow-hidden bg-[radial-gradient(ellipse_at_50%_38%,#1b1624_0,#111119_70%)] font-serif text-[#EDE3E8] [-webkit-touch-callout:none]"
     >
-      <div className="absolute inset-x-0 top-[2.2%] text-center text-[13px] tracking-[.06em] text-[#a398aa]">{title}</div>
+      <div className="absolute inset-x-0 top-6 text-center text-[13px] tracking-[.06em] text-[#a398aa]">{title}</div>
 
       <div ref={gpRef} className="absolute">
         <img ref={imgRef} src={src} alt={alt} draggable={false} className="pointer-events-none block h-full w-full opacity-0 transition-opacity duration-[900ms] motion-reduce:transition-none" />
       </div>
 
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
+      <canvas ref={txRef} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full opacity-0 transition-opacity duration-[500ms]" />
 
-      <p ref={hintRef} className="absolute inset-x-0 bottom-[calc(8%+12px)] m-0 text-center text-[clamp(15px,4vw,19px)] italic opacity-[.85] transition-opacity duration-[600ms]">
+      <p ref={hintRef} className="absolute inset-x-0 bottom-[calc(15%+12px)] m-0 text-center text-[clamp(15px,4vw,19px)] italic opacity-[.85] transition-opacity duration-[600ms]">
         rub the dust to bring us back
       </p>
 
-      <div className="absolute bottom-[8%] left-1/2 h-0.5 w-[min(40%,180px)] -translate-x-1/2 rounded-sm bg-white/[.13] transition-opacity duration-[600ms] group-data-[s=last]:opacity-0 group-data-[s=msg]:opacity-0">
+      <div className="absolute bottom-[15%] left-1/2 h-0.5 w-[min(40%,180px)] -translate-x-1/2 rounded-sm bg-white/[.13] transition-opacity duration-[600ms] group-data-[s=last]:opacity-0 group-data-[s=msg]:opacity-0">
         <i ref={fillRef} className="block h-full w-0 rounded-sm bg-gradient-to-r from-[#C99BB5] to-[#D6A3BC]" />
       </div>
 
-      <button ref={skipRef} type="button" className={`${BTN} absolute bottom-[1.5%] left-1/2 -translate-x-1/2 transition-opacity duration-[600ms] group-data-[s=last]:pointer-events-none group-data-[s=last]:opacity-0 group-data-[s=msg]:pointer-events-none group-data-[s=msg]:opacity-0`}>
+      <button ref={skipRef} type="button" className={`${BTN} absolute bottom-[3%] left-5 transition-opacity duration-[600ms] group-data-[s=last]:pointer-events-none group-data-[s=last]:opacity-0 group-data-[s=msg]:pointer-events-none group-data-[s=msg]:opacity-0`}>
         reveal it for me
       </button>
 
-      <button ref={nxRef} type="button" className={`${BTN} pointer-events-none absolute bottom-[5.5%] left-1/2 -translate-x-1/2 opacity-0 transition-opacity duration-[600ms] group-data-[s=msg]:pointer-events-auto group-data-[s=msg]:opacity-[.85]`}>
+      <button ref={nxRef} type="button" className={`${BTN} pointer-events-none absolute bottom-[15%] left-1/2 -translate-x-1/2 opacity-0 transition-opacity duration-[600ms] group-data-[s=msg]:pointer-events-auto group-data-[s=msg]:opacity-[.85]`}>
         tap to continue
       </button>
 
-      <button ref={foldRef} type="button" className="pointer-events-none absolute bottom-[5.5%] left-1/2 -translate-x-1/2 cursor-pointer rounded-none border-0 border-b border-white/20 bg-transparent px-0 pb-2 text-[11px] uppercase tracking-[.22em] text-[#8d848f] opacity-0 transition-opacity duration-[800ms] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D6A3BC] group-data-[s=last]:pointer-events-auto group-data-[s=last]:opacity-100 group-data-[s=last]:delay-[2600ms]">
+      <button ref={foldRef} type="button" className="pointer-events-none absolute bottom-[15%] left-1/2 -translate-x-1/2 cursor-pointer rounded-none border-0 border-b border-white/20 bg-transparent px-0 pb-2 text-[11px] uppercase tracking-[.22em] text-[#8d848f] opacity-0 transition-opacity duration-[800ms] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D6A3BC] group-data-[s=last]:pointer-events-auto group-data-[s=last]:opacity-100 group-data-[s=last]:delay-[2600ms]">
         Fold the letter back
       </button>
 
-      <div ref={dotsRef} aria-hidden="true" className="absolute inset-x-0 bottom-[2.4%] flex justify-center gap-2 opacity-0 transition-opacity duration-[600ms] group-data-[s=last]:opacity-100 group-data-[s=msg]:opacity-100">
+      <div ref={dotsRef} aria-hidden="true" className="absolute inset-x-0 bottom-[10%] flex justify-center gap-2 opacity-0 transition-opacity duration-[600ms] group-data-[s=last]:opacity-100 group-data-[s=msg]:opacity-100">
         {slides.map((_, i) => (
           <i key={i} data-on="0" className="h-[5px] w-[5px] rounded-full bg-white/20 transition-all duration-[400ms] data-[on=1]:scale-150 data-[on=1]:bg-[#D6A3BC]" />
         ))}
